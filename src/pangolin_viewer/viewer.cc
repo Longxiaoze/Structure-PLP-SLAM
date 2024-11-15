@@ -222,12 +222,28 @@ namespace pangolin_viewer
     {
         if (*menu_follow_camera_ && follow_camera_)
         {
-            s_cam_->Follow(gl_cam_pose_wc);
+            pangolin::OpenGlMatrix flip_matrix;
+            flip_matrix.SetIdentity();
+            flip_matrix.m[0] = -1.0; // 反转 X 轴方向
+            flip_matrix.m[5] = -1;  // 反转 Y 轴方向
+            flip_matrix.m[10] = -1; // 反转 z 轴方向
+
+            pangolin::OpenGlMatrix flipped_cam_pose = flip_matrix * gl_cam_pose_wc;
+            s_cam_->Follow(flipped_cam_pose);
+            // s_cam_->Follow(gl_cam_pose_wc);
         }
         else if (*menu_follow_camera_ && !follow_camera_)
         {
             s_cam_->SetModelViewMatrix(pangolin::ModelViewLookAt(viewpoint_x_, viewpoint_y_, viewpoint_z_, 0, 0, 0, 0.0, -1.0, 0.0));
-            s_cam_->Follow(gl_cam_pose_wc);
+            pangolin::OpenGlMatrix flip_matrix;
+            flip_matrix.SetIdentity();
+            flip_matrix.m[0] = -1.0; // 反转 X 轴方向
+            flip_matrix.m[5] = -1;  // 反转 Y 轴方向
+            flip_matrix.m[10] = -1; // 反转 z 轴方向
+
+            pangolin::OpenGlMatrix flipped_cam_pose = flip_matrix * gl_cam_pose_wc;
+            s_cam_->Follow(flipped_cam_pose);
+            // s_cam_->Follow(gl_cam_pose_wc);
             follow_camera_ = true;
         }
         else if (!*menu_follow_camera_ && follow_camera_)
@@ -243,8 +259,22 @@ namespace pangolin_viewer
             return;
         }
 
+        // Eigen::Matrix4f origin;
+        // origin <<   0, 0, 1, 0, 
+        //             -1, 0, 0, 0, 
+        //             0, -1, 0, 0, 
+        //             0, 0, 0, 1;
         Eigen::Matrix4f origin;
-        origin << 0, 0, 1, 0, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1;
+        origin <<   1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    0, 0, 0, 1;
+        // origin << -1,  0,  0,  0,
+        //         0,  0, -1,  0,
+        //         0,  1,  0,  0,
+        //         0,  0,  0,  1;
+
+
         glPushMatrix();
         glMultTransposeMatrixf(origin.data());
 
@@ -270,6 +300,17 @@ namespace pangolin_viewer
 
         glPopMatrix();
     }
+//     void viewer::draw_horizontal_grid() {
+//     if (!*menu_grid_) {
+//         return;
+//     }
+
+//     glLineWidth(1);
+//     glColor3fv(cs_.grid_.data());
+
+//     constexpr float interval_ratio = 0.1;
+//     pangolin::glDraw_y0(interval_ratio, 10);
+// }
 
     pangolin::OpenGlMatrix viewer::get_current_cam_pose()
     {
